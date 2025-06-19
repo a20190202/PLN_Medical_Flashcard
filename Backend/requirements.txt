@@ -1,0 +1,5 @@
+flask>=3.0.0
+transformers>=4.52.0
+torch>=2.7.0
+sentencepiece>=0.2.0
+requests>=2.32.0  # solo si usas test.py o integración externa

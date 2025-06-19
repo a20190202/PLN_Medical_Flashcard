@@ -1,0 +1,48 @@
+# Entorno virtual
+venv/
+.venv/
+ENV/
+env/
+*.env
+
+# Archivos de Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Archivos temporales / logs
+*.log
+*.tmp
+*.swp
+*.bak
+
+# Archivos de compilación
+*.so
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Archivos de testing
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+test_output/
+
+# Archivos de Jupyter (por si usas notebooks para probar)
+.ipynb_checkpoints/
+
+# Cache de pip y huggingface
+.cache/
+huggingface/
+
+# Modelos descargados (opcional si no los quieres versionar)
+*.bin
+*.pt
+
+# VSCode
+.vscode/
