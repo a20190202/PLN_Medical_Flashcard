@@ -30,11 +30,16 @@ interface ModelMessageData extends BaseMessage {
 type Message = UserMessageData | ModelMessageData;
 
 export default function Home() {
-  const [messages, setMessages] = useState<{ text: string; isUser: boolean }[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   const handleSend = async (message: string) => {
     // Add user message immediately
-    setMessages((prev) => [...prev, { text: message, isUser: true }]);
+    setMessages((prev) => [...prev, {
+      id: crypto.randomUUID(),
+      timestamp: new Date(),
+      type: 'user',
+      content: message,
+    }]);
 
     try {
       const response = await fetch("http://localhost:8000/generar_preguntas", {
@@ -54,16 +59,22 @@ export default function Home() {
       setMessages((prev) => [
         ...prev,
         {
-          text: data.preguntas || "Sorry, I didn't understand that.",
-          isUser: false,
+          id: crypto.randomUUID(),
+          timestamp: new Date(),
+          type: 'model',
+          mainAnswer: data.preguntas || "Sorry, I didn't understand that.",
+          flashcards: [],
         },
       ]);
     } catch (error) {
       setMessages((prev) => [
         ...prev,
         {
-          text: "Error: Unable to fetch response from the server.",
-          isUser: false,
+          id: crypto.randomUUID(),
+          timestamp: new Date(),
+          type: 'model',
+          mainAnswer: "Error: Unable to fetch response from the server.",
+          flashcards: [],
         },
       ]);
     }
