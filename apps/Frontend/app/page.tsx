@@ -5,6 +5,30 @@ import Chatbox from "../components/chat/Chatbox";
 import Sidebar from "../components/sidebar/Sidebar";
 import Textbox from "../components/textbox/Textbox";
 
+// Tipos para los mensajes
+interface QAPair {
+  question: string;
+  answer: string;
+}
+
+interface BaseMessage {
+  id: string;
+  timestamp: Date;
+}
+
+interface UserMessageData extends BaseMessage {
+  type: 'user';
+  content: string;
+}
+
+interface ModelMessageData extends BaseMessage {
+  type: 'model';
+  mainAnswer: string;
+  flashcards: QAPair[];
+}
+
+type Message = UserMessageData | ModelMessageData;
+
 export default function Home() {
   const [messages, setMessages] = useState<{ text: string; isUser: boolean }[]>([]);
 
@@ -46,8 +70,8 @@ export default function Home() {
   };
 
   return (
-    <div className="flex container bg-background min-h-[100dvh] max-h-fit max-w-full overflow-auto">
-      <div className="flex flex-row px-6 py-6 space-x-6 w-full">
+    <div className="flex h-screen bg-background overflow-hidden">
+      <div className="flex flex-row p-6 space-x-6 w-full">
         <Sidebar />
         <div className="flex flex-col space-y-6 w-full rounded-2xl h-[calc(100dvh-3rem)]">
           <div className="flex-grow overflow-hidden">

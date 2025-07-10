@@ -1,34 +1,60 @@
 import { useEffect, useRef } from "react";
 import EmptyChatbox from "./EmptyChatbox";
-import MessageGlobe from "./MessageGlobe";
+import UserMessage from "./UserMessage";
+import ModelMessage from "./ModelMessage";
+
+// Tipos base
+interface QAPair {
+  question: string;
+  answer: string;
+}
+
+interface BaseMessage {
+  id: string;
+  timestamp: Date;
+}
+
+interface UserMessageData extends BaseMessage {
+  type: 'user';
+  content: string;
+}
+
+interface ModelMessageData extends BaseMessage {
+  type: 'model';
+  mainAnswer: string;
+  flashcards: QAPair[];
+}
+
+type Message = UserMessageData | ModelMessageData;
 
 interface ChatboxProps {
-  messages: { text: string; isUser: boolean }[];
+  messages: Message[];
 }
 
 export default function Chatbox({ messages }: ChatboxProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
-    }
-  }, [messages]);
-
   return (
-    <div
-      ref={containerRef}
-      className="w-full h-full overflow-y-auto px-4 py-6"
-      style={{ display: "flex", flexDirection: "column-reverse" }}
-    >
-      {messages.length === 0 ? (
-        <EmptyChatbox />
+    <div className="flex flex-col h-full max-h-[calc(100vh-200px)] rounded-2xl border bg-card">
+      {messages.length > 0 ? (
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          {messages.map((message) => (
+            <div key={message.id}>
+              {message.type === 'user' && (
+                <UserMessage content={message.content} timestamp={message.timestamp} />
+              )}
+              {message.type === 'model' && (
+                <ModelMessage 
+                  mainAnswer={message.mainAnswer} 
+                  flashcards={message.flashcards}
+                  timestamp={message.timestamp}
+                />
+              )}
+            </div>
+          ))}
+        </div>
       ) : (
-        [...messages]
-          .reverse()
-          .map((msg, index) => (
-            <MessageGlobe key={index} text={msg.text} isUser={msg.isUser} />
-          ))
+        <div className="flex-1 flex items-center justify-center">
+          <EmptyChatbox />
+        </div>
       )}
     </div>
   );
