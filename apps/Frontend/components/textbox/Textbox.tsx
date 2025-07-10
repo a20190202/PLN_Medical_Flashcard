@@ -27,21 +27,14 @@ export default function Textbox({ onSend }: TextboxProps) {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit();
-    }
-  };
-
   return (
     <div className="flex">
       <Textarea
         ref={textareaRef}
+        value={input}
         placeholder="Type your message here."
         className="rounded-2xl bg-background shadow-lg resize-none"
         onInput={handleInput}
-        onKeyDown={handleKeyDown}
         onSubmit={handleSubmit}
         style={{
           width: "100%",

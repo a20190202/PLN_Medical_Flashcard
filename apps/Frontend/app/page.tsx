@@ -34,8 +34,10 @@ export default function Home() {
     <div className="flex container bg-background min-h-[100dvh] max-h-fit max-w-full overflow-auto">
       <div className="flex flex-row px-6 py-6 space-x-6 w-full">
         <Sidebar />
-        <div className="flex flex-col space-y-6 w-full rounded-2xl">
-          <Chatbox messages={messages} />
+        <div className="flex flex-col space-y-6 w-full rounded-2xl h-[calc(100dvh-3rem)]">
+          <div className="flex-grow overflow-hidden">
+            <Chatbox messages={messages} />
+          </div>
           <Textbox onSend={handleSend} />
         </div>
       </div>
