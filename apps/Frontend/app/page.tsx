@@ -6,28 +6,43 @@ import Sidebar from "../components/sidebar/Sidebar";
 import Textbox from "../components/textbox/Textbox";
 
 export default function Home() {
-  const [messages, setMessages] = useState([] as { text: string; isUser: boolean }[]);
+  const [messages, setMessages] = useState<{ text: string; isUser: boolean }[]>([]);
 
-  const handleSend = (message: string) => {
-    setMessages((prev) => [
-      ...prev,
-      { text: message, isUser: true },
-      {
-        text: getBotResponse(message),
-        isUser: false,
-      },
-    ]);
-  };
+  const handleSend = async (message: string) => {
+    // Add user message immediately
+    setMessages((prev) => [...prev, { text: message, isUser: true }]);
 
-  const getBotResponse = (input: string): string => {
-    // Hardcoded logic
-    if (input.toLowerCase().includes("risk")) {
-      return "Hypertension risk factors include obesity, high salt intake, and sedentary lifestyle.";
+    try {
+      const response = await fetch("http://localhost:8000/generar_preguntas", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ texto: message }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to get response from bot");
+      }
+
+      const data = await response.json();
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          text: data.preguntas || "Sorry, I didn't understand that.",
+          isUser: false,
+        },
+      ]);
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          text: "Error: Unable to fetch response from the server.",
+          isUser: false,
+        },
+      ]);
     }
-    if (input.toLowerCase().includes("complication")) {
-      return "Complications of hypertension include heart disease, stroke, and kidney failure.";
-    }
-    return "Hypertension is a chronic condition where blood pressure is elevated. Ask me more!";
   };
 
   return (
