@@ -17,29 +17,77 @@ interface BaseMessage {
 }
 
 interface UserMessageData extends BaseMessage {
-  type: 'user';
+  type: "user";
   content: string;
 }
 
 interface ModelMessageData extends BaseMessage {
-  type: 'model';
+  type: "model";
   mainAnswer: string;
   flashcards: QAPair[];
 }
 
 type Message = UserMessageData | ModelMessageData;
 
+interface Chat {
+  id: string;
+  title: string;
+  createdAt: Date;
+}
+
 export default function Home() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  // Estado para los chats
+  const [chats, setChats] = useState<Chat[]>([
+    { id: "1", title: "New chat 1", createdAt: new Date() },
+  ]);
+
+  // Estado para los mensajes de cada chat
+  const [chatMessages, setChatMessages] = useState<Record<string, Message[]>>({
+    "1": [], // Mensajes del chat de hipertensión
+    "2": [], // Mensajes del chat de diabetes
+  });
+
+  const [activeChatId, setActiveChatId] = useState<string | undefined>("1");
+
+  // Obtener mensajes del chat activo
+  const currentMessages = activeChatId ? chatMessages[activeChatId] || [] : [];
 
   const handleSend = async (message: string) => {
-    // Add user message immediately
-    setMessages((prev) => [...prev, {
+    if (!activeChatId) return;
+
+    const userMessage: UserMessageData = {
       id: crypto.randomUUID(),
-      timestamp: new Date(),
-      type: 'user',
+      type: "user",
       content: message,
-    }]);
+      timestamp: new Date(),
+    };
+
+    // Variable para rastrear si es el primer mensaje
+    const isFirstMessage =
+      !chatMessages[activeChatId] || chatMessages[activeChatId].length === 0;
+
+    // Agregar mensaje del usuario al chat actual
+    setChatMessages((prev) => ({
+      ...prev,
+      [activeChatId]: [...(prev[activeChatId] || []), userMessage],
+    }));
+
+    // Actualizar título si es el primer mensaje
+    if (isFirstMessage) {
+      setChats((prevChats) =>
+        prevChats.map((chat) =>
+          chat.id === activeChatId
+            ? {
+                ...chat,
+                title:
+                  message.substring(0, 50) + (message.length > 50 ? "..." : ""),
+              }
+            : chat
+        )
+      );
+    }
+    
+    let modelMessage: ModelMessageData 
 
     try {
       const response = await fetch("http://localhost:8000/generar_preguntas", {
@@ -56,37 +104,73 @@ export default function Home() {
 
       const data = await response.json();
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          timestamp: new Date(),
-          type: 'model',
-          mainAnswer: data.preguntas || "Sorry, I didn't understand that.",
-          flashcards: [],
-        },
-      ]);
+      modelMessage = {
+        id: crypto.randomUUID(),
+        timestamp: new Date(),
+        type: 'model',
+        mainAnswer: data.preguntas || "Sorry, I didn't understand that.",
+        flashcards: [
+          {
+            question: "Pregunta de ejemplo 1",
+            answer: "Respuesta de ejemplo 1",
+          },
+          {
+            question: "Pregunta de ejemplo 2",
+            answer: "Respuesta de ejemplo 2",
+          },
+        ]
+      };
     } catch (error) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          timestamp: new Date(),
-          type: 'model',
-          mainAnswer: "Error: Unable to fetch response from the server.",
+      modelMessage = {
+          id: (Date.now() + 1).toString(),
+          type: "model",
+          mainAnswer: `Error: Unable to fetch response from the server. Code: "${error instanceof Error ? error.message : "Unknown error"}"`,
           flashcards: [],
-        },
-      ]);
+          timestamp: new Date(),
+        };
+    } finally {
+      setChatMessages((prev) => ({
+        ...prev,
+        [activeChatId]: [...(prev[activeChatId] || []), modelMessage],
+      }));
     }
+  };
+
+  const handleChatSelect = (chatId: string) => {
+    setActiveChatId(chatId);
+  };
+
+  const handleNewChat = (newChatId?: string) => {
+    if (newChatId) {
+      // Nuevo chat creado desde el sidebar
+      setActiveChatId(newChatId);
+      setChatMessages((prev) => ({
+        ...prev,
+        [newChatId]: [],
+      }));
+    } else {
+      // Limpiar chat actual
+      setActiveChatId(undefined);
+    }
+  };
+
+  const handleChatsChange = (updatedChats: Chat[]) => {
+    setChats(updatedChats);
   };
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
       <div className="flex flex-row p-6 space-x-6 w-full">
-        <Sidebar />
+        <Sidebar
+          onChatSelect={handleChatSelect}
+          onNewChat={handleNewChat}
+          activeChatId={activeChatId}
+          chats={chats}
+          onChatsChange={handleChatsChange}
+        />
         <div className="flex flex-col space-y-6 w-full rounded-2xl h-[calc(100dvh-3rem)]">
           <div className="flex-grow overflow-hidden">
-            <Chatbox messages={messages} />
+            <Chatbox messages={currentMessages} />
           </div>
           <Textbox onSend={handleSend} />
         </div>
