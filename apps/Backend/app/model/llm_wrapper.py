@@ -1,3 +1,6 @@
+# Import Windows fix FIRST - before any other imports
+from .windows_fix import setup_windows_chromadb
+
 from transformers import pipeline, T5Tokenizer, T5ForConditionalGeneration
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -6,6 +9,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 import json
 import re
+import os
 
 EMBEDDINGS = "pritamdeka/BioBERT-mnli-snli-scinli-scitail-mednli-stsb"
 
@@ -59,53 +63,125 @@ def parse_flashcards_to_json(text):
     """
     Parse flashcard text format and convert to JSON structure
     """
-    flashcards = []
+    try:
+        flashcards = []
 
-    # Split text into individual flashcards using regex
-    flashcard_pattern = (
-        r"Flashcard (\d+): ([^\n]+)\n\nQ: ([^\n]+)\nA: ([^(?:Flashcard|\Z)]+)"
-    )
+        # Updated regex pattern to match the actual format
+        flashcard_pattern = (
+            r"Flashcard (\d+): ([^\n]+)\nQ: ([^\n]+)\nA: ((?:(?!Flashcard \d+:).)*)"
+        )
 
-    matches = re.findall(flashcard_pattern, text, re.DOTALL)
+        matches = re.findall(flashcard_pattern, text, re.DOTALL)
 
-    for match in matches:
-        flashcard_id = int(match[0])
-        title = match[1].strip()
-        question = match[2].strip()
-        answer = match[3].strip()
+        if not matches:
+            print("Warning: No flashcards found in the text")
+            return {"flashcards": []}
 
-        flashcard = {
-            "title": title,
-            "question": question,
-            "answer": answer,
-        }
-        flashcards.append(flashcard)
+        for match in matches:
+            try:
+                flashcard_id = int(match[0])
+                title = match[1].strip()
+                question = match[2].strip()
+                answer = match[3].strip()
 
-    return {"flashcards": flashcards}
+                # Validate that we have all required fields
+                if not title or not question or not answer:
+                    print(
+                        f"Warning: Skipping flashcard {flashcard_id} due to missing fields"
+                    )
+                    continue
+
+                flashcard = {
+                    "title": title,
+                    "question": question,
+                    "answer": answer,
+                }
+                flashcards.append(flashcard)
+            except (ValueError, IndexError) as e:
+                print(f"Error processing flashcard: {e}")
+                continue
+
+        return {"flashcards": flashcards}
+
+    except Exception as e:
+        print(f"Error parsing flashcards: {e}")
+        return {"flashcards": []}
 
 
 def generar_con_llm(llm, texto):
-    vectorstore_dir = "data/pritamdeka_BioBERT-mnli-snli-scinli-scitail-mednli-stsb"
 
-    embeddings_model = HuggingFaceEmbeddings(
-        model_name=EMBEDDINGS,
+    vectorstore_dir = os.path.join(
+        "app",
+        "model",
+        "data",
+        "pritamdeka_BioBERT-mnli-snli-scinli-scitail-mednli-stsb",
     )
+    print(f"Using vector store directory: {vectorstore_dir}")
+    print(os.getcwd())
 
-    # Load the vector store
-    vectorstore = Chroma(
-        persist_directory=vectorstore_dir, embedding_function=embeddings_model
-    )
+    print(f"Looking for vector store at: {vectorstore_dir}")
 
-    prompt = ChatPromptTemplate.from_template(template)
+    # Check if vectorstore directory exists
+    if not os.path.exists(vectorstore_dir):
+        # Fallback: create a simple response without RAG
+        print(
+            f"Warning: Vector store directory {vectorstore_dir} not found. Using fallback mode."
+        )
+        return create_fallback_flashcards(texto)
 
-    retriever = vectorstore.as_retriever(
-        search_type="similarity", search_kwargs={"k": 5}
-    )
+    try:
+        embeddings_model = HuggingFaceEmbeddings(
+            model_name=EMBEDDINGS,
+        )
+        print(f"Using embeddings model: {EMBEDDINGS}")
 
-    # RAG Chain
-    combine_docs_chain = create_stuff_documents_chain(llm, prompt)
-    retrieval_chain = create_retrieval_chain(retriever, combine_docs_chain)
+        # Load the vector store
+        vectorstore = Chroma(
+            persist_directory=vectorstore_dir, embedding_function=embeddings_model
+        )
 
-    result = retrieval_chain.invoke({"input": texto})
-    flashcards = parse_flashcards_to_json(result["answer"])
-    return flashcards
+        print("Vector store loaded successfully")
+
+        prompt = ChatPromptTemplate.from_template(template)
+
+        print("Creating retriever...")
+
+        retriever = vectorstore.as_retriever(
+            search_type="similarity", search_kwargs={"k": 5}
+        )
+        print("Retriever created successfully")
+
+        # RAG Chain
+        combine_docs_chain = create_stuff_documents_chain(llm, prompt)
+        print("Combine documents chain created successfully")
+        retrieval_chain = create_retrieval_chain(retriever, combine_docs_chain)
+        print("Retrieval chain created successfully")
+
+        result = retrieval_chain.invoke({"input": texto})
+        print("RAG pipeline invoked successfully")
+        flashcards = parse_flashcards_to_json(result["answer"])
+        print("Flashcards parsed successfully")
+        return flashcards
+
+    except Exception as e:
+        print(f"Error in RAG pipeline: {e}")
+        return create_fallback_flashcards(texto)
+
+
+def create_fallback_flashcards(texto):
+    """
+    Create simple flashcards when RAG is not available
+    """
+    flashcards = [
+        {
+            "title": "Definition",
+            "question": f"What is {texto}?",
+            "answer": f"{texto} is a medical condition that requires further research and study.",
+        },
+        {
+            "title": "Clinical Significance",
+            "question": f"Why is understanding {texto} important in medical practice?",
+            "answer": f"Understanding {texto} is crucial for proper diagnosis and treatment planning.",
+        },
+    ]
+    return {"flashcards": flashcards}

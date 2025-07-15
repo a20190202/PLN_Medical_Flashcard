@@ -1,15 +1,14 @@
-#!/usr/bin/env python3
 """
-Flask application entry point with Windows ChromaDB fix
+Windows ChromaDB Fix - Must be imported before any ChromaDB imports
 """
 
-# Apply Windows fix BEFORE any other imports
 import os
 import tempfile
+from pathlib import Path
 
 
-def setup_windows_environment():
-    """Setup Windows environment variables before any ChromaDB imports"""
+def setup_windows_chromadb():
+    """Setup environment variables for ChromaDB on Windows"""
     if os.name == "nt":  # Windows
         # Set HOME environment variable if not set
         if not os.environ.get("HOME"):
@@ -36,16 +35,6 @@ def setup_windows_environment():
                 os.path.expanduser("~"), "AppData", "Roaming"
             )
 
-        print("✓ Windows environment variables configured for ChromaDB")
 
-
-# Apply the fix immediately
-setup_windows_environment()
-
-# Now safe to import Flask app
-from app import create_app
-
-app = create_app()
-
-if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=8000)
+# Apply the fix immediately when this module is imported
+setup_windows_chromadb()
