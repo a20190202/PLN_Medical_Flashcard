@@ -87,3 +87,4 @@ huggingface/
 
 # VSCode
 .vscode/
+/pln_model/pritamdeka_BioBERT-mnli-snli-scinli-scitail-mednli-stsb
