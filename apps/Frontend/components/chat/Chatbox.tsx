@@ -4,6 +4,7 @@ import UserMessage from "./UserMessage";
 import ModelMessage from "./ModelMessage";
 
 interface QAPair {
+  title: string;
   question: string;
   answer: string;
 }

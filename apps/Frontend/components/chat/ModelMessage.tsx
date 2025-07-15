@@ -2,6 +2,7 @@ import MessageGlobe from "./MessageGlobe";
 import Flashcard from "./Flashcard";
 
 interface QAPair {
+  title: string;
   question: string;
   answer: string;
 }
@@ -25,6 +26,7 @@ export default function ModelMessage({ mainAnswer, flashcards, timestamp }: Mode
               {flashcards.map((pair, index) => (
                 <Flashcard 
                   key={index}
+                  title={pair.title}
                   question={pair.question}
                   answer={pair.answer}
                 />
