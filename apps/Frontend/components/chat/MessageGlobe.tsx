@@ -11,15 +11,12 @@ export default function MessageGlobe({ type, timestamp, children }: MessageGlobe
   const isUser = type === 'user';
   
   return (
-    <div className={cn(
-      "flex w-full mb-4",
-      isUser ? "justify-end" : "justify-start"
-    )}>
+    <div className="w-full mb-4">
       <div className={cn(
-        "max-w-[70%] rounded-2xl px-4 py-3 shadow-sm",
+        "rounded-2xl px-4 py-3 shadow-sm",
         isUser 
-          ? "bg-primary text-primary-foreground ml-12" 
-          : "bg-muted mr-12"
+          ? "max-w-[50%] bg-primary text-primary-foreground ml-auto" // ml-auto para alinear a la derecha
+          : "max-w-[70%] bg-muted mr-auto" // mr-auto para alinear a la izquierda
       )}>
         <div className="space-y-2">
           {children}
