@@ -3,6 +3,7 @@ from .services import generar_preguntas_llm
 
 main = Blueprint("main", __name__)
 
+
 @main.route("/generar_preguntas", methods=["POST"])
 def generar_preguntas():
     data = request.get_json()
@@ -13,6 +14,6 @@ def generar_preguntas():
 
     try:
         preguntas = generar_preguntas_llm(texto)
-        return jsonify({"preguntas": preguntas}), 200
+        return jsonify(preguntas), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500

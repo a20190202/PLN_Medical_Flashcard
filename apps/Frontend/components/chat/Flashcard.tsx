@@ -6,11 +6,12 @@ import { Button } from "../core/Button";
 import { RotateCcw } from "lucide-react";
 
 interface FlashcardProps {
+  title: string;
   question: string;
   answer: string;
 }
 
-export default function Flashcard({ question, answer }: FlashcardProps) {
+export default function Flashcard({ title, question, answer }: FlashcardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   
   const handleFlip = () => {
@@ -19,6 +20,9 @@ export default function Flashcard({ question, answer }: FlashcardProps) {
 
   return (
     <div className="relative w-full min-h-[120px] perspective-1000">
+      {title && (
+        <h3 className="text-lg font-semibold mb-3 text-foreground">{title}</h3>
+      )}
       <div className={cn(
         "w-full h-full transition-transform duration-500 transform-style-preserve-3d",
         isFlipped && "rotate-y-180"

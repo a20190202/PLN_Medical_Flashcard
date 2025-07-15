@@ -75,7 +75,6 @@ def parse_flashcards_to_json(text):
         answer = match[3].strip()
 
         flashcard = {
-            "id": flashcard_id,
             "title": title,
             "question": question,
             "answer": answer,

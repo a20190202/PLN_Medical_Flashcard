@@ -7,6 +7,7 @@ import Textbox from "../components/textbox/Textbox";
 
 // Tipos para los mensajes
 interface QAPair {
+  title: string;
   question: string;
   answer: string;
 }
@@ -62,8 +63,8 @@ export default function Home() {
           id: crypto.randomUUID(),
           timestamp: new Date(),
           type: 'model',
-          mainAnswer: data.preguntas || "Sorry, I didn't understand that.",
-          flashcards: [],
+          mainAnswer: data.flashcards ? `Generated ${data.flashcards.length} flashcards` : "Sorry, I didn't understand that.",
+          flashcards: data.flashcards || [],
         },
       ]);
     } catch (error) {
