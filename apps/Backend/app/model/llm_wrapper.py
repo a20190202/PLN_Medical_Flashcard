@@ -67,9 +67,7 @@ def parse_flashcards_to_json(text):
         flashcards = []
 
         # Updated regex pattern to match the actual format
-        flashcard_pattern = (
-            r"Flashcard (\d+): ([^\n]+)\nQ: ([^\n]+)\nA: ((?:(?!Flashcard \d+:).)*)"
-        )
+        flashcard_pattern = r"Flashcard (\d+): ([^\n]+)\n+Q: ([^\n]+)\nA: ((?:(?!(?:\n+)?Flashcard \d+:)[\s\S])*?)(?=\n+Flashcard \d+:|$)"
 
         matches = re.findall(flashcard_pattern, text, re.DOTALL)
 
@@ -159,6 +157,7 @@ def generar_con_llm(llm, texto):
 
         result = retrieval_chain.invoke({"input": texto})
         print("RAG pipeline invoked successfully")
+        print(f"Result: {result}")
         flashcards = parse_flashcards_to_json(result["answer"])
         print("Flashcards parsed successfully")
         return flashcards
