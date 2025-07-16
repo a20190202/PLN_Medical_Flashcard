@@ -124,13 +124,13 @@ export default function Sidebar({ onChatSelect, onNewChat, activeChatId, chats, 
                       className="h-6 px-2 bg-red-600 hover:bg-red-700 text-white text-xs"
                     >
                       <Check className="size-3 mr-1" />
-                      Sí
+                      Yes
                     </Button>
                     <Button
                       onClick={cancelDelete}
                       size="sm"
                       variant="outline"
-                      className="h-6 px-2 border-white/30 text-white hover:bg-white/10 text-xs"
+                      className="h-6 px-2 bg-gray-700 border-white/30 text-white hover:bg-white/10 text-xs"
                     >
                       <X className="size-3 mr-1" />
                       No
