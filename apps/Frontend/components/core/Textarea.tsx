@@ -21,7 +21,7 @@ function Textarea({
       className={cn(
         "border-input placeholder:text-muted-foreground",
         "dark:bg-input/30 min-h-16 w-full rounded-md border bg-transparent px-4 py-4",
-        "shadow-xs transition-[color,box-shadow]",
+        "shadow-sm transition-[color,box-shadow]",
         "relative flex items-center gap-4",
         // Estados de focus y validación aplicados al contenedor
         isFocused && "border-ring ring-ring/50 ring-[3px]",

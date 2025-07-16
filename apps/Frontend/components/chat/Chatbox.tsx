@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import EmptyChatbox from "./EmptyChatbox";
 import UserMessage from "./UserMessage";
 import ModelMessage from "./ModelMessage";
+import TypingLoader from "./TypingLoader";
 
 interface QAPair {
   title: string;
@@ -29,41 +30,40 @@ type Message = UserMessageData | ModelMessageData;
 
 interface ChatboxProps {
   messages: Message[];
+  isLoading?: boolean; // Nueva prop para estado de carga
 }
 
-export default function Chatbox({ messages }: ChatboxProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
+export default function Chatbox({ messages, isLoading = false }: ChatboxProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Auto-scroll al final cuando hay nuevos mensajes o está cargando
   useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, isLoading]);
 
   return (
     <div className="flex flex-col h-full max-h-[calc(100vh-200px)] rounded-2xl border bg-card">
-      {messages.length > 0 ? (
-        <div
-          ref={containerRef}
-          className="flex flex-col-reverse overflow-y-auto px-6 py-4 space-y-reverse space-y-4 h-full w-full"
-        >
-          {[...messages].reverse().map((message) => (
+      {messages.length > 0 || isLoading ? (
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          {messages.map((message) => (
             <div key={message.id}>
-              {message.type === "user" && (
-                <UserMessage
-                  content={message.content}
-                  timestamp={message.timestamp}
-                />
+              {message.type === 'user' && (
+                <UserMessage content={message.content} timestamp={message.timestamp} />
               )}
-              {message.type === "model" && (
-                <ModelMessage
-                  mainAnswer={message.mainAnswer}
+              {message.type === 'model' && (
+                <ModelMessage 
+                  mainAnswer={message.mainAnswer} 
                   flashcards={message.flashcards}
                   timestamp={message.timestamp}
                 />
               )}
             </div>
           ))}
+          
+          {/* Mostrar loader cuando está cargando */}
+          {isLoading && <TypingLoader />}
         </div>
       ) : (
         <div className="flex-1 flex items-center justify-center">

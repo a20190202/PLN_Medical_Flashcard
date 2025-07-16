@@ -49,6 +49,7 @@ export default function Home() {
   });
 
   const [activeChatId, setActiveChatId] = useState<string | undefined>("1");
+  const [isLoading, setIsLoading] = useState(false); // Nuevo estado para carga
 
   // Obtener mensajes del chat activo
   const currentMessages = activeChatId ? chatMessages[activeChatId] || [] : [];
@@ -87,8 +88,9 @@ export default function Home() {
         )
       );
     }
-    
-    let modelMessage: ModelMessageData 
+
+    // Activar estado de carga
+    setIsLoading(true);
 
     try {
       const response = await fetch("http://localhost:8000/generar_preguntas", {
@@ -105,26 +107,37 @@ export default function Home() {
 
       const data = await response.json();
 
-      modelMessage = {
+      const modelMessage: ModelMessageData = {
         id: crypto.randomUUID(),
         timestamp: new Date(),
         type: 'model',
         mainAnswer: data.flashcards ? `Generated ${data.flashcards.length} flashcards` : "Sorry, I didn't understand that.",
         flashcards: data.flashcards || [],
       };
-    } catch (error) {
-      modelMessage = {
-          id: (Date.now() + 1).toString(),
-          type: "model",
-          mainAnswer: `Error: Unable to fetch response from the server. Code: "${error instanceof Error ? error.message : "Unknown error"}"`,
-          flashcards: [],
-          timestamp: new Date(),
-        };
-    } finally {
+      
       setChatMessages((prev) => ({
         ...prev,
         [activeChatId]: [...(prev[activeChatId] || []), modelMessage],
       }));
+    } catch (error) {
+      console.error("Error al enviar mensaje:", error);
+
+      // Mensaje de error si falla la request
+      const errorMessage: ModelMessageData = {
+        id: (Date.now() + 1).toString(),
+        type: "model",
+        mainAnswer: `Error: Unable to fetch response from the server. Code: "${error instanceof Error ? error.message : "Unknown error"}"`,
+        flashcards: [],
+        timestamp: new Date(),
+      };
+
+      setChatMessages((prev) => ({
+        ...prev,
+        [activeChatId]: [...(prev[activeChatId] || []), errorMessage],
+      }));
+    } finally {
+      // Desactivar estado de carga
+      setIsLoading(false);
     }
   };
 
@@ -162,9 +175,9 @@ export default function Home() {
         />
         <div className="flex flex-col space-y-6 w-full rounded-2xl h-[calc(100dvh-3rem)]">
           <div className="flex-grow overflow-hidden">
-            <Chatbox messages={currentMessages} />
+            <Chatbox messages={currentMessages} isLoading={isLoading} />
           </div>
-          <Textbox onSend={handleSend} />
+          <Textbox onSend={handleSend} disabled={isLoading} /> {/* Deshabilitar mientras carga */}
         </div>
       </div>
     </div>
