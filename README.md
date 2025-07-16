@@ -10,6 +10,6 @@
 * Alejandro Ríos						- Usuario Github: alez-2210
  
 ## Folders
-La carpeta `apps` contiene el desarrollo de la aplicación web para el uso de flashcards. Es necesario crear y guardar los embeddings según desee el usuario, pues estos no se encuentran en el repositorio de Github.
+La carpeta `apps` contiene el desarrollo de la aplicación web para el uso de flashcards. Es necesario crear y guardar los embeddings según desee el usuario, pues estos no se encuentran en el repositorio de Github. En caso se desee usar otros embeddings, se debe modificar la variable `vectorstore_dir` del archivo `llm_wrapper.py` en el backend. Es necesario instalar y ejecutar Ollama para que el software funcione adecuadamente.
 
 Asimismo, la carpeta `pln_model` contiene los cuadernos de los modelos utilizados para las pruebas, estos incluyen los llms llama y phi.
